@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Fichiers de logs
+*.log
+
+# Dossier de stockage des images (si elles sont générées dynamiquement)
+/images
+
+# Fichiers de l'éditeur (VS Code, etc.)
+.vscode/
+.idea/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de compilation (si vous utilisez TypeScript)
+dist/
+build/
+
+# Fichiers temporaires
+*.tmp
