@@ -3,15 +3,8 @@ const uniqueValidator = require('mongoose-unique-validator'); //permet de valide
 
 //Ce schéma définit les champs que chaque document User doit contenir
 const userSchema = mongoose.Schema({
-  email: {
-    type: String, // doit être une chaîne
-    required: true, // champ obligatoire
-    unique: true, // doit être unique (grâce au plugin)
-  },
-  password: {
-    type: String,
-    required: true,
-  },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
 });
 
 userSchema.plugin(uniqueValidator);

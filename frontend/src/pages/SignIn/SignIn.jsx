@@ -40,7 +40,11 @@ function SignIn({ setUser }) {
       }
     } catch (err) {
       console.log(err);
-      setNotification({ error: true, message: err.message });
+      if (err.response && err.response.status === 401) {
+        setNotification({ error: true, message: 'Email ou mot de passe incorrect' });
+      } else {
+        setNotification({ error: true, message: 'Une erreur est survenue lors de la connexion' });
+      }
       console.log('Some error occured during signing in: ', err);
     } finally {
       setIsLoading(false);
@@ -64,7 +68,11 @@ function SignIn({ setUser }) {
       }
       setNotification({ error: false, message: 'Votre compte a bien été créé, vous pouvez vous connecter' });
     } catch (err) {
-      setNotification({ error: true, message: err.message });
+      if (err.response && err.response.data && err.response.data.message) {
+        setNotification({ error: true, message: err.response.data.message });
+      } else {
+        setNotification({ error: true, message: 'Une erreur est survenue lors de l\'inscription' });
+      }
       console.log('Some error occured during signing up: ', err);
     } finally {
       setIsLoading(false);

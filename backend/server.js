@@ -20,8 +20,8 @@ mongoose
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 ////////////////////////////////////  deffinition des Routes ///////////////////////////////////////
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/books', require('./routes/books'));
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/books', require('./routes/books.routes'));
 
 //////////////////////////// Gestion des images ////////////////////////////////////////
 app.use('/images', express.static(path.join(__dirname, 'images')));
