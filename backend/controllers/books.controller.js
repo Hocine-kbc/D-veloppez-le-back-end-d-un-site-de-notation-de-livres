@@ -1,6 +1,7 @@
 const Book = require('../models/book.model');
 const fs = require('fs');
 const sharp = require('sharp');
+const path = require('path');
 
 exports.createBook = (req, res, next) => {
   try {
@@ -12,31 +13,35 @@ exports.createBook = (req, res, next) => {
     delete bookObject._id;
     delete bookObject._userId;
 
-    const book = new Book({
-      ...bookObject,
-      userId: req.auth.userId,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-    });
+    // Conversion en WebP
+    const webpFilename = `${path.parse(req.file.filename).name}.webp`;
+    const webpPath = path.join('images', webpFilename);
 
-    // Optimisation de l'image
     sharp(req.file.path)
       .resize(400, 600)
-      .jpeg({ quality: 80 })
-      .toFile(`${req.file.path}.optimized`)
+      .webp({ quality: 80 })
+      .toFile(webpPath)
       .then(() => {
+        // Suppression du fichier original
         fs.unlinkSync(req.file.path);
-        fs.renameSync(`${req.file.path}.optimized`, req.file.path);
+
+        const book = new Book({
+          ...bookObject,
+          userId: req.auth.userId,
+          imageUrl: `${req.protocol}://${req.get('host')}/images/${webpFilename}`,
+        });
+
+        book
+          .save()
+          .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
+          .catch((error) => {
+            console.error("Erreur lors de l'enregistrement du livre:", error);
+            res.status(400).json({ error: error.message });
+          });
       })
       .catch((error) => {
-        console.error("Erreur lors de l'optimisation de l'image:", error);
-      });
-
-    book
-      .save()
-      .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
-      .catch((error) => {
-        console.error("Erreur lors de l'enregistrement du livre:", error);
-        res.status(400).json({ error: error.message });
+        console.error("Erreur lors de la conversion de l'image:", error);
+        res.status(500).json({ error: "Erreur lors du traitement de l'image" });
       });
   } catch (error) {
     console.error('Erreur lors de la création du livre:', error);
@@ -79,12 +84,38 @@ exports.modifyBook = (req, res, next) => {
         res.status(403).json({ message: 'Non autorisé' });
       } else {
         if (req.file) {
-          const filename = book.imageUrl.split('/images/')[1];
-          fs.unlink(`images/${filename}`, () => {});
+          // Conversion en WebP
+          const webpFilename = `${path.parse(req.file.filename).name}.webp`;
+          const webpPath = path.join('images', webpFilename);
+
+          sharp(req.file.path)
+            .resize(400, 600)
+            .webp({ quality: 80 })
+            .toFile(webpPath)
+            .then(() => {
+              // Suppression du fichier original
+              fs.unlinkSync(req.file.path);
+
+              // Suppression de l'ancienne image
+              const filename = book.imageUrl.split('/images/')[1];
+              fs.unlink(`images/${filename}`, () => {});
+
+              // Mise à jour de l'URL de l'image
+              bookObject.imageUrl = `${req.protocol}://${req.get('host')}/images/${webpFilename}`;
+
+              Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
+                .then(() => res.status(200).json({ message: 'Livre modifié !' }))
+                .catch((error) => res.status(400).json({ error }));
+            })
+            .catch((error) => {
+              console.error("Erreur lors de la conversion de l'image:", error);
+              res.status(500).json({ error: "Erreur lors du traitement de l'image" });
+            });
+        } else {
+          Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
+            .then(() => res.status(200).json({ message: 'Livre modifié !' }))
+            .catch((error) => res.status(400).json({ error }));
         }
-        Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Livre modifié !' }))
-          .catch((error) => res.status(400).json({ error }));
       }
     })
     .catch((error) => res.status(400).json({ error }));
