@@ -1,5 +1,4 @@
-const jwt = require('jsonwebtoken'); //Importe la bibliothèque jsonwebtoken pour décoder et vérifier le token JWT.
-
+const jwt = require('jsonwebtoken');
 module.exports = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1];

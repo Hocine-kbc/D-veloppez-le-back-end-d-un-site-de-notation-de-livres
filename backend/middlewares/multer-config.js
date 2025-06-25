@@ -35,6 +35,6 @@ module.exports = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Limite à 5MB
+    fileSize: 10 * 1024 * 1024, // Limite à 10MB
   },
 }).single('image');

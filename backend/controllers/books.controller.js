@@ -22,7 +22,6 @@ exports.createBook = (req, res, next) => {
       .webp({ quality: 80 })
       .toFile(webpPath)
       .then(() => {
-        // Suppression du fichier original
         fs.unlinkSync(req.file.path);
 
         const book = new Book({
